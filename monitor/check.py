@@ -5,6 +5,7 @@ from hashing.scanner import scan_directory
 
 BASE_FILE = os.path.join("baseline/base.json")
 
+
 def check_integrity(directory):
     print("Checking File Integrity...")
     if not os.path.exists(BASE_FILE):
@@ -36,3 +37,5 @@ def check_integrity(directory):
     for file in current_data:
         if file not in baseline_data:
             print(f"New: {file}")
+
+    print("Integrity check completed.")
