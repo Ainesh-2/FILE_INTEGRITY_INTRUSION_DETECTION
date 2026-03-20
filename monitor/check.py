@@ -2,6 +2,7 @@ import os
 import json
 from hashing.hasher import hash_file
 from hashing.scanner import scan_directory
+from logs.logger import write_log
 
 BASE_FILE = os.path.join("baseline/base.json")
 
@@ -27,15 +28,21 @@ def check_integrity(directory):
                 "last_modified": os.path.getmtime(file)
             }
 
-    # Check for new, modified, and deleted files
     for file in baseline_data:
         if file not in current_data:
-            print(f"Deleted: {file}")
+            msg = f"[Deleted] {file}"
+            print(msg)
+            write_log(msg)
+            
         elif baseline_data[file]["hash"] != current_data[file]["hash"]:
-            print(f"Modified: {file}")
+            msg = f"[Modified] {file}"
+            print(msg)
+            write_log(msg)
 
     for file in current_data:
         if file not in baseline_data:
-            print(f"New: {file}")
+            msg = f"[New] {file}"
+            print(msg)
+            write_log(msg)
 
     print("Integrity check completed.")
