@@ -5,7 +5,6 @@ from hashing.scanner import scan_directory
 
 Base_File = os.path.join("baseline/base.json")
 
-
 def create_baseline(directory):
     print(f"Creating baseline for directory: {directory}")
     baseline_data = {}
