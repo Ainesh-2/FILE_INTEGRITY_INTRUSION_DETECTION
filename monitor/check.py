@@ -1,13 +1,46 @@
 import os
 import json
+import hashlib
 from hashing.hasher import hash_file
 from hashing.scanner import scan_directory
 from logs.logger import write_log
 
 BASE_FILE = os.path.join("baseline/base.json")
 
+def verify_baseline_integrity():
+    hash_file_path = os.path.join("baseline", "base.hash")
+    baseline_file = os.path.join("baseline", "base.json")
+    if not os.path.exists(hash_file_path):
+        msg = "[CRITICAL] Baseline hash file not found"
+        print("Baseline hash not found!")
+        write_log(msg)
+        return False
+    
+    with open(hash_file_path,"r") as file:
+        stored_hash = file.read().strip()
+
+    sha256 = hashlib.sha256()
+    with open(baseline_file,"rb") as f:
+        chunk = f.read(4096)
+        while chunk:
+            sha256.update(chunk)
+            chunk = f.read(4096)
+    current_hash = sha256.hexdigest()
+
+    if stored_hash != current_hash:
+        msg = "[CRITICAL] Baseline tampering detected"
+        print("BASELINE IS TAMPERED!")
+        write_log(msg)
+        return False
+    return True
 
 def check_integrity(directory):
+    if not verify_baseline_integrity():
+        msg = "Integrity check aborted due to baseline tampering"
+        print("Aborting Integrity Check...")
+        write_log(msg)
+        return
+    
     modified_count=0
     deleted_count=0
     new_count=0
