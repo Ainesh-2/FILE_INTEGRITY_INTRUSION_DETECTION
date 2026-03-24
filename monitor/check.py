@@ -4,23 +4,29 @@ import hashlib
 from hashing.hasher import hash_file
 from hashing.scanner import scan_directory
 from logs.logger import write_log
+from config.config_loader import load_config
 
 BASE_FILE = os.path.join("baseline/base.json")
 
+
 def verify_baseline_integrity():
+    config = load_config()
+    severity_config = config["severity_levels"]
+
     hash_file_path = os.path.join("baseline", "base.hash")
     baseline_file = os.path.join("baseline", "base.json")
     if not os.path.exists(hash_file_path):
-        msg = "[CRITICAL] Baseline hash file not found"
-        print("Baseline hash not found!")
-        write_log(msg)
+        severity = severity_config["BASELINE_TAMPERED"]
+        msg = f"Baseline hash file not found"
+        print(f"[{severity}] Baseline hash not found!")
+        write_log(msg, severity)
         return False
-    
-    with open(hash_file_path,"r") as file:
+
+    with open(hash_file_path, "r") as file:
         stored_hash = file.read().strip()
 
     sha256 = hashlib.sha256()
-    with open(baseline_file,"rb") as f:
+    with open(baseline_file, "rb") as f:
         chunk = f.read(4096)
         while chunk:
             sha256.update(chunk)
@@ -28,22 +34,27 @@ def verify_baseline_integrity():
     current_hash = sha256.hexdigest()
 
     if stored_hash != current_hash:
-        msg = "[CRITICAL] Baseline tampering detected"
-        print("BASELINE IS TAMPERED!")
-        write_log(msg)
+        severity = severity_config["BASELINE_TAMPERED"]
+        msg = f"Baseline tampering detected! Stored hash: {stored_hash}, Current hash: {current_hash}"
+        print(f"[{severity}] BASELINE IS TAMPERED!")
+        write_log(msg, severity)
         return False
     return True
 
+
 def check_integrity(directory):
+    config = load_config()
+    severity_config = config["severity_levels"]
+
     if not verify_baseline_integrity():
         msg = "Integrity check aborted due to baseline tampering"
         print("Aborting Integrity Check...")
-        write_log(msg)
+        write_log(msg, severity="INFO")
         return
-    
-    modified_count=0
-    deleted_count=0
-    new_count=0
+
+    modified_count = 0
+    deleted_count = 0
+    new_count = 0
 
     print("Checking File Integrity...")
     if not os.path.exists(BASE_FILE):
@@ -67,29 +78,32 @@ def check_integrity(directory):
 
     for file in baseline_data:
         if file not in current_data:
-            msg = f"[Deleted] {file}"
-            print(msg)
-            write_log(msg)
-            deleted_count+=1
-            
+            severity = severity_config["DELETED"]
+            msg = f"File deleted: {file}"
+            print(f"[{severity}] {msg}")
+            write_log(msg, severity)
+            deleted_count += 1
+
         elif baseline_data[file]["hash"] != current_data[file]["hash"]:
-            msg = f"[Modified] {file}"
-            print(msg)
-            write_log(msg)
-            modified_count+=1
+            severity = severity_config["MODIFIED"]
+            msg = f"File modified: {file}"
+            print(f"[{severity}] {msg}")
+            write_log(msg, severity)
+            modified_count += 1
 
     for file in current_data:
         if file not in baseline_data:
-            msg = f"[New] {file}"
-            print(msg)
-            write_log(msg)
-            new_count+=1
+            severity = severity_config["NEW"]
+            msg = f"New file: {file}"
+            print(f"[{severity}] {msg}")
+            write_log(msg, severity)
+            new_count += 1
 
     print("\nSummary:")
     print("Modified:", modified_count)
     print("Deleted:", deleted_count)
     print("New:", new_count)
 
-    write_log(f"Summary: Modified={modified_count}, Deleted={deleted_count}, New={new_count}")
-
+    write_log(
+        f"Summary: Modified={modified_count}, Deleted={deleted_count}, New={new_count}", severity="INFO")
     print("Integrity check completed.")

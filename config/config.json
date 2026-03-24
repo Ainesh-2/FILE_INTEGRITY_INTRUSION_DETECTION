@@ -1,0 +1,19 @@
+{
+    "directories_to_monitor": [
+        "."
+    ],
+    "directories_to_ignore": [
+        "__pycache__",
+        ".git",
+        "baseline"
+    ],
+    "ignore_files": [
+        "logs/alerts.log"
+    ],
+    "severity_levels": {
+        "NEW": "LOW",
+        "MODIFIED": "HIGH",
+        "DELETED": "HIGH",
+        "BASELINE_TAMPERED": "CRITICAL"
+    }
+}
