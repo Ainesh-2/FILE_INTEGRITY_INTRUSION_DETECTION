@@ -17,10 +17,6 @@ The system identifies:
 
 ---
 
-# ⚙️ System Overview
-
----
-
 # 🔑 Key Features
 
 ---
