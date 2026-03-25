@@ -1,7 +1,6 @@
 import os
 import json
 import hashlib
-from baseline.base import hash_baseline_file
 from hashing.hasher import hash_file
 from hashing.scanner import scan_directory
 from logs.logger import write_log
@@ -65,44 +64,6 @@ def check_integrity(directory):
     with open(BASE_FILE, "r") as file:
         baseline_data = json.load(file)
 
-    IGNORE_FILES = config["ignore_files"]
-    for ignore_path in IGNORE_FILES:
-        ignore_path = ignore_path.replace("/", "\\")
-        full_ignore = os.path.join(".", ignore_path)
-        if full_ignore in baseline_data:
-            del baseline_data[full_ignore]
-        alt_ignore = full_ignore.replace("\\", "/")
-        if alt_ignore in baseline_data:
-            del baseline_data[alt_ignore]
-
-    SPECIAL_KEYS = ["log_data"]
-
-    logs = baseline_data.get("log_data")
-    if logs:
-        log_path = logs["path"]
-        log_issue = False
-        if not os.path.exists(log_path):
-            severity = severity_config["LOG_TAMPERED"]
-            msg = f"Log file missing/deleted: {log_path}"
-            print(f"[{severity}] {msg}")
-            write_log(msg, severity)
-            log_issue = True
-        else:
-            current_size = os.path.getsize(log_path)
-            if current_size < logs["size"]:
-                severity = severity_config["LOG_TAMPERED"]
-                msg = f"Log file was truncated! Original size: {logs['size']} bytes, Current size: {current_size} bytes"
-                print(f"[{severity}] {msg}")
-                write_log(msg, severity)
-                log_issue = True
-        if log_issue and os.path.exists(log_path):
-            baseline_data["log_data"]["size"] = os.path.getsize(log_path)
-            with open(BASE_FILE, "w") as file:
-                json.dump(baseline_data, file, indent=4)
-            new_hash = hash_baseline_file(BASE_FILE)
-            with open(os.path.join("baseline", "base.hash"), "w") as f:
-                f.write(new_hash)
-
     current_files = scan_directory(directory)
     current_data = {}
 
@@ -116,8 +77,6 @@ def check_integrity(directory):
             }
 
     for file in baseline_data:
-        if file in SPECIAL_KEYS:
-            continue
         if file not in current_data:
             severity = severity_config["DELETED"]
             msg = f"File deleted: {file}"
@@ -148,13 +107,3 @@ def check_integrity(directory):
     write_log(
         f"Summary: Modified={modified_count}, Deleted={deleted_count}, New={new_count}", severity="INFO")
     print("Integrity check completed.")
-
-    if logs and os.path.exists(log_path):
-        current_size = os.path.getsize(log_path)
-        if current_size != logs["size"]:
-            baseline_data["log_data"]["size"] = current_size
-            with open(BASE_FILE, "w") as file:
-                json.dump(baseline_data, file, indent=4)
-            new_hash = hash_baseline_file(BASE_FILE)
-            with open(os.path.join("baseline", "base.hash"), "w") as f:
-                f.write(new_hash)

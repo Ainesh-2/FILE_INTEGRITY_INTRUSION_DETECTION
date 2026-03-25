@@ -31,13 +31,6 @@ def create_baseline(directory):
             }
     os.makedirs("baseline", exist_ok=True)
 
-    log_file = os.path.join("logs", "alerts.log")
-    if os.path.exists(log_file):
-        baseline_data["log_data"] = {
-            "path": log_file,
-            "size": os.path.getsize(log_file)
-        }
-
     with open(Base_File, "w") as file:
         json.dump(baseline_data, file, indent=4)
 

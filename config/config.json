@@ -14,7 +14,6 @@
         "NEW": "LOW",
         "MODIFIED": "HIGH",
         "DELETED": "HIGH",
-        "BASELINE_TAMPERED": "CRITICAL",
-        "LOG_TAMPERED": "CRITICAL"
+        "BASELINE_TAMPERED": "CRITICAL"
     }
 }
