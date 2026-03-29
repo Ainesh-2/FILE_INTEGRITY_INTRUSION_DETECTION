@@ -1,5 +1,7 @@
 import os
+import logging
 from datetime import datetime
+from logging.handlers import TimedRotatingFileHandler
 
 LOG_FILE = os.path.join("logs", "alerts.log")
 
@@ -17,10 +19,22 @@ def colour_severity(severity):
         return f"[{severity}]"
 
 
+def _get_logger():
+    logger = logging.getLogger("file_integrity")
+    if not logger.handlers:
+        os.makedirs("logs", exist_ok=True)
+        handler = TimedRotatingFileHandler(
+            LOG_FILE, when="midnight", backupCount=30, encoding="utf-8"
+        )
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(handler)
+        logger.setLevel(logging.DEBUG)
+    return logger
+
+
 def write_log(msg, severity):
-    os.makedirs("logs", exist_ok=True)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+    logger = _get_logger()
+    timestamp = datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
     coloured_msg = colour_severity(severity)
     log_entry = f"{timestamp} - {coloured_msg} {msg}"
-    with open(LOG_FILE, 'a') as file:
-        file.write(log_entry+"\n")
+    logger.info(log_entry)

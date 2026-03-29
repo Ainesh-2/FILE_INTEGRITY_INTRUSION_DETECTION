@@ -29,14 +29,22 @@ def create_baseline(directory):
                 "size": os.path.getsize(file),
                 "last_modified": os.path.getmtime(file)
             }
+
+    log_file = os.path.join("logs", "alerts.log")
+    if os.path.exists(log_file):
+        baseline_data["log_data"] = {
+            "path": log_file,
+            "size": os.path.getsize(log_file)
+        }
+
     os.makedirs("baseline", exist_ok=True)
 
-    with open(Base_File, "w") as file:
+    with open(Base_File, "w", encoding="utf-8") as file:
         json.dump(baseline_data, file, indent=4)
 
     baseline_hash = hash_baseline_file(Base_File)
 
-    with open(os.path.join("baseline", "base.hash"), "w") as f:
+    with open(os.path.join("baseline", "base.hash"), "w", encoding="utf-8") as f:
         f.write(baseline_hash)
 
     print(f"Baseline created with {len(baseline_data)} files.")
