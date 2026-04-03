@@ -5,3 +5,4 @@ baseline/base.json
 baseline/*.hash
 
 logs/*.log
+logs/archive/

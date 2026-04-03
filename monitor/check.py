@@ -1,6 +1,8 @@
 import os
 import json
+import atexit
 import hashlib
+from datetime import date
 from baseline.base import hash_baseline_file
 from hashing.hasher import hash_file
 from hashing.scanner import scan_directory
@@ -8,6 +10,20 @@ from logs.logger import write_log
 from config.config_loader import load_config
 
 BASE_FILE = os.path.join("baseline/base.json")
+known_alerts = {}
+daily_counts = {"modified": 0, "deleted": 0, "new": 0}
+summary_date = date.today()
+
+
+def daily_summary():
+    write_log(
+        f"Daily Summary [{summary_date}]: Modified={daily_counts['modified']}, "
+        f"Deleted={daily_counts['deleted']}, New={daily_counts['new']}",
+        severity="INFO"
+    )
+
+
+atexit.register(daily_summary)
 
 
 def verify_baseline_integrity():
@@ -44,8 +60,15 @@ def verify_baseline_integrity():
 
 
 def check_integrity(directory):
+    global daily_counts, summary_date
     config = load_config()
     severity_config = config["severity_levels"]
+
+    today = date.today()
+    if today != summary_date:
+        daily_summary()
+        daily_counts = {"modified": 0, "deleted": 0, "new": 0}
+        summary_date = today
 
     if not verify_baseline_integrity():
         msg = "Integrity check aborted due to baseline tampering"
@@ -117,34 +140,50 @@ def check_integrity(directory):
                 "last_modified": os.path.getmtime(file)
             }
 
+    resolved = [f for f in known_alerts if f not in baseline_data and f in current_data
+                and baseline_data.get(f, {}).get("hash") == current_data[f]["hash"]]
+    for file in resolved:
+        del known_alerts[file]
+
     for file in baseline_data:
         if file not in current_data:
-            severity = severity_config["DELETED"]
-            msg = f"File deleted: {file}"
-            print(f"[{severity}] {msg}")
-            write_log(msg, severity)
+            if known_alerts.get(file) != "DELETED":
+                severity = severity_config["DELETED"]
+                msg = f"File deleted: {file}"
+                print(f"[{severity}] {msg}")
+                write_log(msg, severity)
+                known_alerts[file] = "DELETED"
             deleted_count += 1
 
         elif baseline_data[file]["hash"] != current_data[file]["hash"]:
-            severity = severity_config["MODIFIED"]
-            msg = f"File modified: {file}"
-            print(f"[{severity}] {msg}")
-            write_log(msg, severity)
+            current_hash = current_data[file]["hash"]
+            if known_alerts.get(file) != current_hash:
+                severity = severity_config["MODIFIED"]
+                msg = f"File modified: {file}"
+                print(f"[{severity}] {msg}")
+                write_log(msg, severity)
+                known_alerts[file] = current_hash
             modified_count += 1
+        else:
+            known_alerts.pop(file, None)
 
     for file in current_data:
         if file not in baseline_data:
-            severity = severity_config["NEW"]
-            msg = f"New file: {file}"
-            print(f"[{severity}] {msg}")
-            write_log(msg, severity)
+            current_hash = current_data[file]["hash"]
+            if known_alerts.get(file) != current_hash:
+                severity = severity_config["NEW"]
+                msg = f"New file: {file}" if file not in known_alerts else f"New file modified: {file}"
+                print(f"[{severity}] {msg}")
+                write_log(msg, severity)
+                known_alerts[file] = current_hash
             new_count += 1
+
+    daily_counts["modified"] += modified_count
+    daily_counts["deleted"] += deleted_count
+    daily_counts["new"] += new_count
 
     print("\nSummary:")
     print("Modified:", modified_count)
     print("Deleted:", deleted_count)
     print("New:", new_count)
-
-    write_log(
-        f"Summary: Modified={modified_count}, Deleted={deleted_count}, New={new_count}", severity="INFO")
     print("Integrity check completed.")

@@ -1,6 +1,7 @@
 from baseline.base import create_baseline
 from monitor.check import check_integrity
 from config.config_loader import load_config
+import subprocess
 import time
 
 
@@ -20,6 +21,11 @@ if __name__ == "__main__":
         elif choice == "2":
             check_integrity(directory)
         elif choice == "3":
+            subprocess.Popen(
+                ["powershell", "-NoExit", "-Command",
+                    "Get-Content logs\\alerts.log -Wait"],
+                creationflags=subprocess.CREATE_NEW_CONSOLE
+            )
             print("Starting continuous monitoring...")
             while True:
                 try:
