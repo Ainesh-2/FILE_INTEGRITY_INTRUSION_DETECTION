@@ -5,4 +5,8 @@ baseline/base.json
 baseline/*.hash
 
 logs/*.log
+*.venv/
 logs/archive/
+*.pkl.large
+*.joblib
+
