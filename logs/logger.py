@@ -46,13 +46,13 @@ def write_log(msg, severity):
         _session_started = True
         ts = datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
         logger.info(f"\033[92m{'=' * 60}\033[0m")
-        logger.info(f"\033[92m  SESSION START  —  {ts}\033[0m")
+        logger.info(f"\033[92m  SESSION START   {ts}\033[0m")
         logger.info(f"\033[92m{'=' * 60}\033[0m")
 
         def _end_banner():
             ts_end = datetime.now().strftime("%Y-%m-%d | %H:%M:%S")
             logger.info(f"\033[91m{'=' * 60}\033[0m")
-            logger.info(f"\033[91m  SESSION END    —  {ts_end}\033[0m")
+            logger.info(f"\033[91m  SESSION END    {ts_end}\033[0m")
             logger.info(f"\033[91m{'=' * 60}\033[0m")
 
         atexit.register(_end_banner)
