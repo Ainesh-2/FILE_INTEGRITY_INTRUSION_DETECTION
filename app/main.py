@@ -1,4 +1,5 @@
 import os
+import subprocess
 import threading
 import time
 import tkinter as tk
@@ -68,8 +69,22 @@ def _run_create_baseline(directories: list[str]) -> None:
     print("\nBaseline created successfully.")
 
 
+def _spawn_log_window() -> None:
+    log_path = os.path.abspath(os.path.join("logs", "alerts.log"))
+    ps_command = (
+        f"$host.UI.RawUI.WindowTitle = 'IDS Live Logs'; "
+        f"Get-Content '{log_path}' -Wait"
+    )
+    subprocess.Popen(
+        ["powershell", "-NoExit", "-Command", ps_command],
+        creationflags=subprocess.CREATE_NEW_CONSOLE,
+    )
+
+
 def _run_monitoring(directories: list[str], interval: int) -> None:
     print("\nStarting continuous monitoring...\n")
+
+    _spawn_log_window()
 
     monitor = threading.Thread(
         target=_monitoring_loop,
