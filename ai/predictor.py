@@ -1,6 +1,6 @@
 import joblib
 
-model = joblib.load("ai/ransomware_model.pkl")
+model = joblib.load("ai/intrusion_model.pkl")
 
 
 def predict_intrusion(features):

@@ -1,5 +1,5 @@
 from baseline.base import create_baseline
-from monitor.check import check_integrity
+from monitor.check import check_integrity, reset_baseline_state
 from config.config_loader import load_config
 import subprocess
 import time
@@ -18,6 +18,7 @@ if __name__ == "__main__":
         print(f"Monitoring directory: {directory}")
         if choice == "1":
             create_baseline(directory)
+            reset_baseline_state()
         elif choice == "2":
             check_integrity(directory)
         elif choice == "3":

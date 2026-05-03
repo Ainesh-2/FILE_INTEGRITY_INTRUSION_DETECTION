@@ -13,6 +13,6 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 model = RandomForestClassifier(n_estimators=120, max_depth=10)
 
 model.fit(X_train, y_train)
-joblib.dump(model, "ai/ransomware_model.pkl")
+joblib.dump(model, "ai/intrusion_model.pkl")
 
-print("Model trained and saved to ai/ransomware_model.pkl")
+print("Model trained and saved to ai/intrusion_model.pkl")

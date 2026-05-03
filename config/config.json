@@ -5,16 +5,23 @@
     "directories_to_ignore": [
         "__pycache__",
         ".git",
-        "baseline"
+        "baseline",
+        ".venv"
     ],
     "ignore_files": [
         "logs/alerts.log"
     ],
     "severity_levels": {
-        "NEW": "LOW",
-        "MODIFIED": "HIGH",
-        "DELETED": "HIGH",
-        "BASELINE_TAMPERED": "CRITICAL",
-        "LOG_TAMPERED": "CRITICAL"
+        "NEW":                "LOW",
+        "MODIFIED":           "HIGH",
+        "DELETED":            "HIGH",
+        "RESOLVED":           "INFO",
+        "BASELINE_TAMPERED":  "CRITICAL",
+        "LOG_TAMPERED":       "CRITICAL"
+    },
+    "ai_thresholds": {
+        "burst_new_count":     40,
+        "destructive_deleted": 40,
+        "quiet_total":          2
     }
 }
